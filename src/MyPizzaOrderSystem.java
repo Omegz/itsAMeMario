@@ -74,6 +74,8 @@ public class MyPizzaOrderSystem {
                     }
 
                     System.out.println(quantity + "x " + chosenPizza.getName() + " added!");
+                    displayOrdersTable(); // ✅ Always show active and ready-for-collection orders
+
                 } else {
                     System.out.println("Invalid pizza number, try again.");
                 }
@@ -130,12 +132,7 @@ public class MyPizzaOrderSystem {
         }
         System.out.println();
     }
-    // ✅ Clears the screen and always shows the table
-    private void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-        displayTable(); // ✅ Show table every time screen clears
-    }
+
 
     // ✅ Displays the menu AND the order table
     private void showMenu() {
@@ -147,33 +144,6 @@ public class MyPizzaOrderSystem {
         System.out.println("5: Exit");
         System.out.println("===========================");
         System.out.print("Enter your choice: ");
-    }
-
-    // ✅ Table for menu, active orders, and ready-for-collection orders
-    private void displayTable() {
-        System.out.println("\n=================================================================");
-        System.out.printf("%-30s | %-25s | %-25s%n", "MENU", "ACTIVE ORDERS", "READY FOR COLLECTION");
-        System.out.println("=================================================================");
-
-        int maxRows = Math.max(Menu.values().length, Math.max(bestillinger.size(), klarTilAfhentning.size()));
-
-        for (int i = 0; i < maxRows; i++) {
-            // ✅ Left column: Menu Items
-            String menuColumn = (i < Menu.values().length) ?
-                    String.format("%d️⃣ %-20s - %d DKK", Menu.values()[i].getNr(), Menu.values()[i].getName(), Menu.values()[i].getPrice()) : "";
-
-            // ✅ Middle column: Active Orders
-            String activeOrderColumn = (i < bestillinger.size()) ?
-                    String.format("%d..............................", bestillinger.get(i).getOrdreNr()) : "";
-
-            // ✅ Right column: Ready for Collection Orders
-            String readyOrderColumn = (i < klarTilAfhentning.size()) ?
-                    String.format("%d..............................", klarTilAfhentning.get(i).getOrdreNr()) : "";
-
-            // ✅ Print the row
-            System.out.printf("%-30s | %-25s | %-25s%n", menuColumn, activeOrderColumn, readyOrderColumn);
-        }
-        System.out.println("=================================================================\n");
     }
 
 
@@ -189,6 +159,37 @@ public class MyPizzaOrderSystem {
         System.out.println();
     }
 
+
+    // ✅ Clears the screen and always shows the orders table
+    private void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        displayOrdersTable(); // ✅ Always show active and ready-for-collection orders
+    }
+
+    // ✅ Table for active orders and ready-for-collection orders (ALWAYS VISIBLE)
+    private void displayOrdersTable() {
+        System.out.println("\n=================================================================");
+        System.out.printf("%-30s | %-30s%n", "ACTIVE ORDERS", "READY FOR COLLECTION");
+        System.out.println("=================================================================");
+
+        int maxRows = Math.max(bestillinger.size(), klarTilAfhentning.size());
+
+        for (int i = 0; i < maxRows; i++) {
+            // ✅ Middle column: Active Orders
+            String activeOrderColumn = (i < bestillinger.size()) ?
+                    String.format("Order #%d - %d pizzas", bestillinger.get(i).getOrdreNr(), bestillinger.get(i).getVarer().size()) : "";
+
+            // ✅ Right column: Ready for Collection Orders
+            String readyOrderColumn = (i < klarTilAfhentning.size()) ?
+                    String.format("Order #%d - %d pizzas", klarTilAfhentning.get(i).getOrdreNr(), klarTilAfhentning.get(i).getVarer().size()) : "";
+
+            // ✅ Print the row
+            System.out.printf("%-30s | %-30s%n", activeOrderColumn, readyOrderColumn);
+        }
+        System.out.println("=================================================================\n");
+    }
+
     // ✅ Moves orders every 4 new orders
     private void updateOrderStatus() {
         if (bestillinger.size() >= 4) {
@@ -198,11 +199,12 @@ public class MyPizzaOrderSystem {
             System.out.println("Order #" + oldestOrder.getOrdreNr() + " is now Ready for Collection!");
         }
 
-        if (!klarTilAfhentning.isEmpty()) {
+        if (klarTilAfhentning.size() >= 4) {
             // ✅ Move the oldest "Ready for Collection" order to "History"
             Bestilling collectedOrder = klarTilAfhentning.remove(0);
             ordreHistorik.add(collectedOrder);
             System.out.println("Order #" + collectedOrder.getOrdreNr() + " has been collected and added to history.");
         }
     }
+
 }
