@@ -9,11 +9,8 @@ public class MyPizzaOrderSystem {
 
     public void start() {
         while (true) {
-            System.out.println("1: Create Order");
-            System.out.println("2: Delete Order");
-            System.out.println("3: Show Active Orders");
-            System.out.println("4: Show Order History");
-            System.out.println("5: Exit");
+            clearScreen(); // ✅ Clears screen before showing menu
+            showMenu();    // ✅ Displays the menu
 
             int valg = scanner.nextInt();
             scanner.nextLine(); // ✅ Fix input issues
@@ -31,6 +28,10 @@ public class MyPizzaOrderSystem {
             } else {
                 System.out.println("Invalid choice, try again.");
             }
+
+            // ✅ Pause before redisplaying the menu
+            System.out.println("\nPress Enter to continue...");
+            scanner.nextLine();
         }
     }
 
@@ -129,6 +130,52 @@ public class MyPizzaOrderSystem {
         }
         System.out.println();
     }
+    // ✅ Clears the screen and always shows the table
+    private void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        displayTable(); // ✅ Show table every time screen clears
+    }
+
+    // ✅ Displays the menu AND the order table
+    private void showMenu() {
+        System.out.println("==== PIZZA ORDER SYSTEM ====");
+        System.out.println("1: Create Order");
+        System.out.println("2: Delete Order");
+        System.out.println("3: Show Active Orders");
+        System.out.println("4: Show Order History");
+        System.out.println("5: Exit");
+        System.out.println("===========================");
+        System.out.print("Enter your choice: ");
+    }
+
+    // ✅ Table for menu, active orders, and ready-for-collection orders
+    private void displayTable() {
+        System.out.println("\n=================================================================");
+        System.out.printf("%-30s | %-25s | %-25s%n", "MENU", "ACTIVE ORDERS", "READY FOR COLLECTION");
+        System.out.println("=================================================================");
+
+        int maxRows = Math.max(Menu.values().length, Math.max(bestillinger.size(), klarTilAfhentning.size()));
+
+        for (int i = 0; i < maxRows; i++) {
+            // ✅ Left column: Menu Items
+            String menuColumn = (i < Menu.values().length) ?
+                    String.format("%d️⃣ %-20s - %d DKK", Menu.values()[i].getNr(), Menu.values()[i].getName(), Menu.values()[i].getPrice()) : "";
+
+            // ✅ Middle column: Active Orders
+            String activeOrderColumn = (i < bestillinger.size()) ?
+                    String.format("%d..............................", bestillinger.get(i).getOrdreNr()) : "";
+
+            // ✅ Right column: Ready for Collection Orders
+            String readyOrderColumn = (i < klarTilAfhentning.size()) ?
+                    String.format("%d..............................", klarTilAfhentning.get(i).getOrdreNr()) : "";
+
+            // ✅ Print the row
+            System.out.printf("%-30s | %-25s | %-25s%n", menuColumn, activeOrderColumn, readyOrderColumn);
+        }
+        System.out.println("=================================================================\n");
+    }
+
 
     // ✅ Show order history in a table format
     private void showOrderHistory() {
