@@ -169,25 +169,77 @@ public class MyPizzaOrderSystem {
 
     // ✅ Table for active orders and ready-for-collection orders (ALWAYS VISIBLE)
     private void displayOrdersTable() {
-        System.out.println("\n=================================================================");
-        System.out.printf("%-30s | %-30s%n", "ACTIVE ORDERS", "READY FOR COLLECTION");
-        System.out.println("=================================================================");
+        System.out.println("\n=================================================================================================================");
+        System.out.printf("%-50s | %-50s%n", "ACTIVE ORDERS", "READY FOR COLLECTION");
+        System.out.println("=================================================================================================================");
 
         int maxRows = Math.max(bestillinger.size(), klarTilAfhentning.size());
 
         for (int i = 0; i < maxRows; i++) {
             // ✅ Middle column: Active Orders
-            String activeOrderColumn = (i < bestillinger.size()) ?
-                    String.format("Order #%d - %d pizzas", bestillinger.get(i).getOrdreNr(), bestillinger.get(i).getVarer().size()) : "";
+            String activeOrderColumn = " ";
+            if (i < bestillinger.size()) {
+                Bestilling order = bestillinger.get(i);
+                String items = getGroupedOrderItems(order); // ✅ Now groups identical pizzas
+
+                // ✅ Wrap long text into lines
+                activeOrderColumn = wrapText(String.format("Order #%d - %d pizzas: %s",
+                        order.getOrdreNr(), order.getVarer().size(), items), 45);
+            }
 
             // ✅ Right column: Ready for Collection Orders
-            String readyOrderColumn = (i < klarTilAfhentning.size()) ?
-                    String.format("Order #%d - %d pizzas", klarTilAfhentning.get(i).getOrdreNr(), klarTilAfhentning.get(i).getVarer().size()) : "";
+            String readyOrderColumn = " ";
+            if (i < klarTilAfhentning.size()) {
+                Bestilling order = klarTilAfhentning.get(i);
+                String items = getGroupedOrderItems(order); // ✅ Now groups identical pizzas
 
-            // ✅ Print the row
-            System.out.printf("%-30s | %-30s%n", activeOrderColumn, readyOrderColumn);
+                // ✅ Wrap long text into lines
+                readyOrderColumn = wrapText(String.format("Order #%d - %d pizzas: %s",
+                        order.getOrdreNr(), order.getVarer().size(), items), 45);
+            }
+
+            // ✅ Print each line of wrapped text
+            List<String> activeLines = Arrays.asList(activeOrderColumn.split("\n"));
+            List<String> readyLines = Arrays.asList(readyOrderColumn.split("\n"));
+            int maxLines = Math.max(activeLines.size(), readyLines.size());
+
+            for (int j = 0; j < maxLines; j++) {
+                String activeLine = (j < activeLines.size()) ? activeLines.get(j) : "";
+                String readyLine = (j < readyLines.size()) ? readyLines.get(j) : "";
+                System.out.printf("%-50s | %-50s%n", activeLine, readyLine);
+            }
+
+            System.out.println("-----------------------------------------------------------------------------------------------------------------");
         }
-        System.out.println("=================================================================\n");
+    }
+
+    // ✅ Groups identical pizzas and displays quantity (e.g., "Carbona x3")
+    private String getGroupedOrderItems(Bestilling order) {
+        Map<String, Integer> pizzaCount = new LinkedHashMap<>();
+
+        for (Menu pizza : order.getVarer()) {
+            pizzaCount.put(pizza.getName(), pizzaCount.getOrDefault(pizza.getName(), 0) + 1);
+        }
+
+        return pizzaCount.entrySet().stream()
+                .map(entry -> entry.getKey() + " x" + entry.getValue()) // ✅ Convert to "Carbona x3"
+                .reduce((a, b) -> a + ", " + b) // ✅ Join into one string
+                .orElse(""); // ✅ Return empty if no items
+    }
+
+
+    // ✅ Method to wrap long text into multiple lines
+    private String wrapText(String text, int maxWidth) {
+        StringBuilder wrappedText = new StringBuilder();
+        int lineStart = 0;
+
+        while (lineStart < text.length()) {
+            int lineEnd = Math.min(lineStart + maxWidth, text.length());
+            wrappedText.append(text, lineStart, lineEnd).append("\n");
+            lineStart += maxWidth;
+        }
+
+        return wrappedText.toString().trim();
     }
 
     // ✅ Moves orders every 4 new orders
