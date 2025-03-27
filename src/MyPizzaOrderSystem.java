@@ -16,7 +16,7 @@ public class MyPizzaOrderSystem {
             scanner.nextLine(); // ✅ Fix input issues
 
             if (valg == 1) {
-                createOrder();
+                opretOrder();
             } else if (valg == 2) {
                 deleteOrder();
             } else if (valg == 3) {
@@ -36,86 +36,129 @@ public class MyPizzaOrderSystem {
     }
 
     // ✅ Create an order
-    private void createOrder() {
-        ordreNr++; // ✅ Increment order number
-        Bestilling newBestilling = new Bestilling(ordreNr);
 
-        System.out.println("Choose pizzas for your order (type 'done' when finished):");
+    private void opretOrder() {
+        ordreNr++;
+        Bestilling nyBestilling = new Bestilling(ordreNr);
+
+        System.out.println("indtast pizza nummer (indtast 'færdig' efter valg):");
         while (true) {
             for (Menu pizza : Menu.values()) {
                 System.out.println(pizza.getNr() + ": " + pizza.getName() + " - " + pizza.getPrice() + " DKK");
             }
 
-            System.out.println("Enter pizza number (or type 'done' to finish):");
+            System.out.println("indtast venligst, pizza nummer (indtast 'færdig' når valgt):");
             String input = scanner.nextLine();
 
-            if (input.equalsIgnoreCase("done")) {
+            if (input.equalsIgnoreCase("færdig")) {
                 break;
             }
 
             try {
-                int pizzaNumber = Integer.parseInt(input);
-                Menu chosenPizza = null;
+                int pizzaNummer = Integer.parseInt(input);
+                Menu valgtPizza = null;
 
                 for (Menu pizza : Menu.values()) {
-                    if (pizza.getNr() == pizzaNumber) {
-                        chosenPizza = pizza;
+                    if (pizza.getNr() == pizzaNummer) {
+                        valgtPizza = pizza;
                         break;
                     }
                 }
 
-                if (chosenPizza != null) {
-                    System.out.println("How many " + chosenPizza.getName() + " pizzas?");
+                if (valgtPizza != null) {
+                    System.out.println("hvor mange " + valgtPizza.getName() + " pizzaer?");
                     int quantity = scanner.nextInt();
                     scanner.nextLine();
 
                     for (int i = 0; i < quantity; i++) {
-                        newBestilling.tilfojVare(chosenPizza);
+                        nyBestilling.tilfojVare(valgtPizza);
                     }
 
-                    System.out.println(quantity + "x " + chosenPizza.getName() + " added!");
-                    displayOrdersTable(); // ✅ Always show active and ready-for-collection orders
+                    System.out.println(quantity + "x " + valgtPizza.getName() + " tilføjet!");
+                    displayOrdersTable(); // viser altid aktive ordrer
 
                 } else {
-                    System.out.println("Invalid pizza number, try again.");
+                    System.out.println("ugyldig pizza nummer, prøv igen.");
                 }
 
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println(" indtast venligst et gyldigt pizza nummer.");
             }
         }
 
-        bestillinger.add(newBestilling);
-        System.out.println("Order #" + newBestilling.getOrdreNr() + " created with " +
-                newBestilling.getVarer().size() + " pizzas!");
+        bestillinger.add(nyBestilling);
+        System.out.println("Ordrer #" + nyBestilling.getOrdreNr() + " oprettet med " +
+                nyBestilling.getVarer().size() + " pizzaer!");
 
-        // ✅ Move orders every 4 orders
+
         updateOrderStatus();
     }
 
+
     // ✅ Delete an order
+//    private void deleteOrder() {
+//        if (bestillinger.isEmpty()) {
+//            System.out.println("No orders to delete.");
+//            return;
+//        }
+//
+//        System.out.println("Existing orders:");
+//        for (Bestilling order : bestillinger) {
+//            System.out.println("Order #" + order.getOrdreNr() + " - " + order.getVarer().size() + " pizzas");
+//        }
+//
+//        System.out.println("Enter order number to delete:");
+//        int orderToDelete = scanner.nextInt();
+//        scanner.nextLine();
+//
+//        boolean removed = bestillinger.removeIf(order -> order.getOrdreNr() == orderToDelete);
+//        if (removed) {
+//            System.out.println("Order #" + orderToDelete + " has been deleted.");
+//        } else {
+//            System.out.println("Order not found.");
+//        }
+//    }
+
+
+    //Slet en ordre med bekræftelse
     private void deleteOrder() {
         if (bestillinger.isEmpty()) {
-            System.out.println("No orders to delete.");
+            System.out.println("Ingen aktive ordrer at slette.");
             return;
         }
 
-        System.out.println("Existing orders:");
+        System.out.println("Eksisterende ordrer:");
         for (Bestilling order : bestillinger) {
-            System.out.println("Order #" + order.getOrdreNr() + " - " + order.getVarer().size() + " pizzas");
+            System.out.println("Ordre #" + order.getOrdreNr() + " - " + order.getVarer().size() + " pizzaer");
         }
 
-        System.out.println("Enter order number to delete:");
+        System.out.print("Indtast ordrenummer for at slette: ");
         int orderToDelete = scanner.nextInt();
         scanner.nextLine();
 
-        boolean removed = bestillinger.removeIf(order -> order.getOrdreNr() == orderToDelete);
-        if (removed) {
-            System.out.println("Order #" + orderToDelete + " has been deleted.");
+        Bestilling foundOrder = null;
+        for (Bestilling order : bestillinger) {
+            if (order.getOrdreNr() == orderToDelete) {
+                foundOrder = order;
+                break;
+            }
+        }
+        if (foundOrder != null) {
+            System.out.print("Er du sikker på, at du vil slette ordre #" + orderToDelete + "? (ja/nej): ");
+            String confirmation = scanner.nextLine().trim().toLowerCase();
+
+            if (confirmation.equals("ja")) {
+                bestillinger.remove(foundOrder);
+                ordreHistorik.add(foundOrder);
+                System.out.println("Ordre #" + orderToDelete + " er blevet slettet og arkiveret.");
+            } else {
+                System.out.println("Sletning annulleret.");
+            }
         } else {
-            System.out.println("Order not found.");
+            System.out.println("Ordre ikke fundet.");
         }
     }
+
 
     // ✅ Show active orders in a table format
     private void showActiveOrders() {
