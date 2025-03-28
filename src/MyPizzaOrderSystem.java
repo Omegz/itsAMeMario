@@ -10,7 +10,7 @@ public class MyPizzaOrderSystem {
     public void start() {
         while (true) {
             clearScreen(); // ✅ Clears screen before showing menu
-            showMenu();    // ✅ Displays the menu
+            visMuligheder();    // ✅ Displays the menu
 
             int valg = scanner.nextInt();
             scanner.nextLine(); // ✅ Fix input issues
@@ -178,7 +178,7 @@ public class MyPizzaOrderSystem {
 
 
     // ✅ Displays the menu AND the order table
-    private void showMenu() {
+    private void visMuligheder() {
         System.out.println("==== PIZZA ORDER SYSTEM ====");
         System.out.println("1: Create Order");
         System.out.println("2: Delete Order");
@@ -205,7 +205,7 @@ public class MyPizzaOrderSystem {
 
     // ✅ Clears the screen and always shows the orders table
     private void clearScreen() {
-        System.out.print("\033[H\033[2J");
+//        System.out.print("\033[H\033[2J");
         System.out.flush();
         displayOrdersTable(); // ✅ Always show active and ready-for-collection orders
     }
@@ -256,36 +256,63 @@ public class MyPizzaOrderSystem {
         }
     }
 
-    // ✅ Groups identical pizzas and displays quantity (e.g., "Carbona x3")
+    //  Groups identical pizzas and displays quantity (e.g., "Carbona x3")
     private String getGroupedOrderItems(Bestilling order) {
+
+        // LinkedHashMap is imported from java.util
+        // Map is used to store key–value pairs, e.g. "Carbonara" : 2
+        // We're creating a Map of type LinkedHashMap, which allows us to keep the order of insertion
+        // We use the Map to check if a pizza has already been added before
+        // If it has, we increase the value (count) of that key instead of creating a new key
+        //We use a LinkedHashMap to group identical pizzas and keep track of how many of each were ordered,
+        // in the same order the customer added them
         Map<String, Integer> pizzaCount = new LinkedHashMap<>();
 
+        //  for loop to search for pizzas (based from Menu) from our order (Bestilling )
         for (Menu pizza : order.getVarer()) {
+            // add the key: pizza name
+            // add the value : look in pizza count. find name, do we have an instance o fthat name?
+            // if yes, take the value and add 1. if not then give 0 to that value and add 1
             pizzaCount.put(pizza.getName(), pizzaCount.getOrDefault(pizza.getName(), 0) + 1);
         }
 
-        return pizzaCount.entrySet().stream()
-                .map(entry -> entry.getKey() + " x" + entry.getValue()) // ✅ Convert to "Carbona x3"
-                .reduce((a, b) -> a + ", " + b) // ✅ Join into one string
-                .orElse(""); // ✅ Return empty if no items
+        // aim is to return our map from above into a string
+
+        String result = "";
+        // we are looping and adding to our map
+        for (Map.Entry<String, Integer> entry : pizzaCount.entrySet()) {
+            if (!result.isEmpty()) {
+                result += ", ";
+            }
+            result += entry.getKey() + " x" + entry.getValue();
+        }
+
+        return result;
+
     }
 
 
-    // ✅ Method to wrap long text into multiple lines
+    //Method to wrap long text into multiple lines, it takes text and a max width we decide.
     private String wrapText(String text, int maxWidth) {
+        // StringBuilder is imported via import java.util.*; it allows us to place the entire order in one string
+        // instead of a new string for every item added to order. normal strings cant be edited, but this one can.
         StringBuilder wrappedText = new StringBuilder();
         int lineStart = 0;
 
         while (lineStart < text.length()) {
+            // decides end of the line based on whats smaller between the (max amount we can have in one line)
+            // or how much text we actually have
             int lineEnd = Math.min(lineStart + maxWidth, text.length());
+            // actually adds that line of text with our decided lower and upper limits set. then starts a new line
             wrappedText.append(text, lineStart, lineEnd).append("\n");
+            // resets the start to where we reached so far in the text.
             lineStart += maxWidth;
         }
 
         return wrappedText.toString().trim();
     }
 
-    // ✅ Moves orders every 4 new orders
+    //  Moves orders every 4 new orders
     private void updateOrderStatus() {
         if (bestillinger.size() >= 4) {
             // ✅ Move the oldest active order to "Ready for Collection"
